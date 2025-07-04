@@ -17,19 +17,21 @@ Smart Voice AI is a voice-controlled Flutter application that acts as a personal
 ---
 
 ## 🧰 Tech Stack
-**Flutter** (Material 3, Dart)
-**OpenAI API** (ChatGPT + DALL·E)
-**speech_to_text** (Voice input)
-**flutter_tts** (Voice output)
-**http** (REST API integration)
-**animate_do** (UI animations)
+- Flutter (Material 3, Dart)
+- OpenAI API (ChatGPT + DALL·E)
+- speech_to_text (Voice input)
+- flutter_tts (Voice output)
+- http (REST API integration)
+- animate_do (UI animations)
 
 ## 📂 Project Structure
 
+```
 lib/
 ├── main.dart
-├── home_page.dart              # Main assistant screen
-├── open_services.dart          # OpenAI API services
-├── pallete.dart                # Theme & colors
-├── feature_box.dart            # Feature UI widget
-├── secrets.dart                # Your OpenAI API key
+├── home_page.dart           # Main assistant screen
+├── open_services.dart       # OpenAI API services
+├── pallete.dart             # Theme & colors
+├── feature_box.dart         # Feature UI widget
+├── secrets.dart             # Your OpenAI API key
+```
