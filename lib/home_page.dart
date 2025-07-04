@@ -105,6 +105,13 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // Action to perform when the button is pressed
+        },
+        backgroundColor: Pallete.featureBox1Color,
+        child: const Icon(Icons.mic),
+      ),
     );
   }
 }
