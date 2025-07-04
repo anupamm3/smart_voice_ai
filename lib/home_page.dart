@@ -38,10 +38,12 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> initSpeechToText() async {
     await speechToText.initialize();
+    debugPrint('Speech recognition available: ${speechToText.isAvailable}');
     setState(() {});
   }
 
   Future<void> startListening() async {
+    debugPrint('Starting to listen...');
     await speechToText.listen(onResult: onSpeechResult);
     setState(() {});
   }
@@ -52,6 +54,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void onSpeechResult(SpeechRecognitionResult result) {
+    debugPrint('Recognized Words: ${result.recognizedWords}');
     setState(() {
       lastWords = result.recognizedWords;
     });
@@ -216,10 +219,14 @@ class _HomePageState extends State<HomePage> {
         child: FloatingActionButton(
           backgroundColor: Pallete.featureBox1Color,
           onPressed: () async {
+            debugPrint('FAB pressed');
+            debugPrint('Permission: ${await speechToText.hasPermission}');
+            debugPrint('Listening: ${speechToText.isListening}');
             if (await speechToText.hasPermission &&
                 speechToText.isNotListening) {
               await startListening();
             } else if (speechToText.isListening) {
+              debugPrint('Final speech input: $lastWords');
               final speech = await openAIService.isArtPromptAPI(lastWords);
               if (speech.contains('https')) {
                 generatedImageUrl = speech;

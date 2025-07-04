@@ -1,16 +1,35 @@
-# smart_voice_ai
+# 🧠 Smart Voice AI
 
-A new Flutter project.
+Smart Voice AI is a voice-controlled Flutter application that acts as a personal assistant by understanding natural speech, generating intelligent responses using OpenAI's ChatGPT API, and reading them aloud using text-to-speech.
 
-## Getting Started
+---
 
-This project is a starting point for a Flutter application.
+## ✨ Features
 
-A few resources to get you started if this is your first Flutter project:
+- 🎙️ **Voice Input** — Tap to speak using speech recognition
+- 🤖 **ChatGPT Integration** — Get smart replies based on natural language
+- 🗣️ **Text-to-Speech** — Assistant reads the response aloud
+- 🖼️ **DALL·E Integration** — Generate AI images when prompted
+- 🧵 **Basic Context Memory** — Retains short conversation history for better responses
+- 💡 **Modern UI** — Clean and responsive design using Flutter Material 3
+- 📜 **Chat Bubble & Assistant Avatar** — Shows conversation or generated image
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+---
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## 🧰 Tech Stack
+**Flutter** (Material 3, Dart)
+**OpenAI API** (ChatGPT + DALL·E)
+**speech_to_text** (Voice input)
+**flutter_tts** (Voice output)
+**http** (REST API integration)
+**animate_do** (UI animations)
+
+## 📂 Project Structure
+
+lib/
+├── main.dart
+├── home_page.dart              # Main assistant screen
+├── open_services.dart          # OpenAI API services
+├── pallete.dart                # Theme & colors
+├── feature_box.dart            # Feature UI widget
+├── secrets.dart                # Your OpenAI API key

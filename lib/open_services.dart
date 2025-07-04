@@ -43,7 +43,11 @@ class OpenAIService {
             return res;
         }
       }
-      return 'An internal error occurred';
+      else {
+        final error = jsonDecode(res.body);
+        final msg = error['error']?['message'] ?? 'An internal error occurred';
+        return 'Error: $msg';
+      }
     } catch (e) {
       return e.toString();
     }
@@ -78,7 +82,11 @@ class OpenAIService {
         });
         return content;
       }
-      return 'An internal error occurred';
+      else {
+        final error = jsonDecode(res.body);
+        final msg = error['error']?['message'] ?? 'An internal error occurred';
+        return 'Error: $msg';
+      }
     } catch (e) {
       return e.toString();
     }
@@ -112,7 +120,11 @@ class OpenAIService {
         });
         return imageUrl;
       }
-      return 'An internal error occurred';
+      else {
+        final error = jsonDecode(res.body);
+        final msg = error['error']?['message'] ?? 'An internal error occurred';
+        return 'Error: $msg';
+      }
     } catch (e) {
       return e.toString();
     }
