@@ -2,7 +2,7 @@ import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:smart_voice_ai/feature_box.dart';
-import 'package:smart_voice_ai/open_services.dart';
+import 'package:smart_voice_ai/gemini_service.dart';
 import 'package:smart_voice_ai/pallete.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
@@ -18,7 +18,7 @@ class _HomePageState extends State<HomePage> {
   final speechToText = SpeechToText();
   final flutterTts = FlutterTts();
   String lastWords = '';
-  final OpenAIService openAIService = OpenAIService();
+  final GeminiService geminiService = GeminiService();
   String? generatedContent;
   String? generatedImageUrl;
   int start = 200;
@@ -185,18 +185,18 @@ class _HomePageState extends State<HomePage> {
                     delay: Duration(milliseconds: start),
                     child: const FeatureBox(
                       color: Pallete.featureBox1Color,
-                      headerText: 'ChatGPT',
+                      headerText: 'Gemini AI',
                       descriptionText:
-                          'A smarter way to stay organized and informed with ChatGPT',
+                          'A smarter way to stay organized and informed with Gemini AI',
                     ),
                   ),
                   SlideInLeft(
                     delay: Duration(milliseconds: start + delay),
                     child: const FeatureBox(
                       color: Pallete.featureBox2Color,
-                      headerText: 'Dall-E',
+                      headerText: 'Text Generation',
                       descriptionText:
-                          'Get inspired and stay creative with your personal assistant powered by Dall-E',
+                          'Get inspired and stay creative with your personal assistant powered by Gemini',
                     ),
                   ),
                   SlideInLeft(
@@ -205,7 +205,7 @@ class _HomePageState extends State<HomePage> {
                       color: Pallete.featureBox3Color,
                       headerText: 'Smart Voice Assistant',
                       descriptionText:
-                          'Get the best of both worlds with a voice assistant powered by Dall-E and ChatGPT',
+                          'Get the best of both worlds with a voice assistant powered by Gemini AI',
                     ),
                   ),
                 ],
@@ -227,7 +227,7 @@ class _HomePageState extends State<HomePage> {
               await startListening();
             } else if (speechToText.isListening) {
               debugPrint('Final speech input: $lastWords');
-              final speech = await openAIService.isArtPromptAPI(lastWords);
+              final speech = await geminiService.isArtPromptAPI(lastWords); // Changed this line
               if (speech.contains('https')) {
                 generatedImageUrl = speech;
                 generatedContent = null;
