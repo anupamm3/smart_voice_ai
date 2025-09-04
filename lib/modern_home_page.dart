@@ -396,14 +396,25 @@ class _ModernHomePageState extends State<ModernHomePage>
   Widget _buildFeatureGrid() {
     final features = [
       FeatureItem(
-        icon: Icons.note_add,
-        title: 'Voice Notes',
-        description: 'Create notes with your voice',
-        color: Colors.blue,
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const NotesScreen()),
-        ),
+        icon: Icons.wb_sunny,
+        title: 'Weather',
+        description: 'Get weather updates',
+        color: Colors.amber,
+        onTap: () => _askForWeather(),
+      ),
+      FeatureItem(
+        icon: Icons.format_quote,
+        title: 'Daily Quotes',
+        description: 'Inspirational quotes',
+        color: Colors.purple,
+        onTap: () => _getQuote(),
+      ),
+      FeatureItem(
+        icon: Icons.emoji_emotions,
+        title: 'Jokes & Fun',
+        description: 'Tell jokes and riddles',
+        color: Colors.pink,
+        onTap: () => _tellJoke(),
       ),
       FeatureItem(
         icon: Icons.alarm,
@@ -416,6 +427,16 @@ class _ModernHomePageState extends State<ModernHomePage>
         ),
       ),
       FeatureItem(
+        icon: Icons.note_add,
+        title: 'Voice Notes',
+        description: 'Create notes with your voice',
+        color: Colors.blue,
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const NotesScreen()),
+        ),
+      ),
+      FeatureItem(
         icon: Icons.history,
         title: 'History',
         description: 'View command history',
@@ -424,27 +445,6 @@ class _ModernHomePageState extends State<ModernHomePage>
           context,
           MaterialPageRoute(builder: (context) => const HistoryScreen()),
         ),
-      ),
-      FeatureItem(
-        icon: Icons.wb_sunny,
-        title: 'Weather',
-        description: 'Get weather updates',
-        color: Colors.amber,
-        onTap: () => _askForWeather(),
-      ),
-      FeatureItem(
-        icon: Icons.emoji_emotions,
-        title: 'Jokes & Fun',
-        description: 'Tell jokes and riddles',
-        color: Colors.pink,
-        onTap: () => _tellJoke(),
-      ),
-      FeatureItem(
-        icon: Icons.format_quote,
-        title: 'Daily Quotes',
-        description: 'Inspirational quotes',
-        color: Colors.purple,
-        onTap: () => _getQuote(),
       ),
     ];
 
