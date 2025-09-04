@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'providers/voice_assistant_provider.dart';
 import 'providers/app_state_provider.dart';
 import 'screens/notes_screen.dart';
@@ -278,15 +280,42 @@ class _ModernHomePageState extends State<ModernHomePage>
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.volume_up),
-                    onPressed: () => provider.systemSpeak(provider.generatedContent!),
-                    tooltip: 'Speak response',
+                  // Dynamic speak/stop button
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      if (provider.isSpeaking) {
+                        provider.stopSpeaking();
+                      } else {
+                        provider.systemSpeak(provider.generatedContent!);
+                      }
+                    },
+                    icon: Icon(
+                      provider.isSpeaking ? Icons.stop : Icons.volume_up,
+                    ),
+                    label: Text(
+                      provider.isSpeaking ? 'Stop Speaking' : 'Speak',
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: provider.isSpeaking 
+                          ? Colors.red.shade600 
+                          : Theme.of(context).colorScheme.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   IconButton(
                     icon: const Icon(Icons.copy),
-                    onPressed: () {
-                      // TODO: Implement copy to clipboard
+                    onPressed: () async {
+                      await Clipboard.setData(ClipboardData(text: provider.generatedContent!));
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Response copied to clipboard!'),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      }
                     },
                     tooltip: 'Copy response',
                   ),
@@ -294,6 +323,9 @@ class _ModernHomePageState extends State<ModernHomePage>
                     icon: const Icon(Icons.share),
                     onPressed: () {
                       // TODO: Implement share functionality
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Share feature - Coming Soon!')),
+                      );
                     },
                     tooltip: 'Share response',
                   ),
@@ -660,25 +692,180 @@ class _ModernHomePageState extends State<ModernHomePage>
     }
   }
 
-  void _executeQuickAction(String command) {
+  Future<void> _executeQuickAction(String command) async {
     final provider = Provider.of<VoiceAssistantProvider>(context, listen: false);
-    // For now, just speak the command action
-    provider.systemSpeak("Executing: $command");
     
-    // TODO: Implement proper command execution
-    // This would need a new method in VoiceAssistantProvider
+    try {
+      // Handle specific quick actions with URL launcher
+      if (command.toLowerCase().contains('reminder')) {
+        await _openClockApp();
+      } else if (command.toLowerCase().contains('calculator')) {
+        await _openCalculator();
+      } else if (command.toLowerCase().contains('weather')) {
+        _askForWeather();
+      } else if (command.toLowerCase().contains('joke')) {
+        _tellJoke();
+      } else if (command.toLowerCase().contains('inspire')) {
+        _getQuote();
+      } else if (command.toLowerCase().contains('fact')) {
+        _getFunFact();
+      } else {
+        // For other commands, just speak them
+        provider.systemSpeak("Executing: $command");
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error executing command: $e')),
+      );
+    }
+  }
+
+  Future<void> _openClockApp() async {
+    try {
+      // First, try to launch alarm/reminder setting directly with action intent
+      const String setAlarmAction = 'android.intent.action.SET_ALARM';
+      final Uri setAlarmIntent = Uri.parse('intent://#Intent;action=$setAlarmAction;end');
+      
+      try {
+        await launchUrl(setAlarmIntent, mode: LaunchMode.externalApplication);
+        return;
+      } catch (e) {
+        // Continue to other methods if this fails
+      }
+
+      // Try Android Clock app intent
+      final clockUri = Uri.parse('android-app://com.google.android.deskclock');
+      if (await canLaunchUrl(clockUri)) {
+        await launchUrl(clockUri, mode: LaunchMode.externalApplication);
+        return;
+      }
+
+      // Try system clock app
+      final systemClockUri = Uri.parse('android-app://com.android.deskclock');
+      if (await canLaunchUrl(systemClockUri)) {
+        await launchUrl(systemClockUri, mode: LaunchMode.externalApplication);
+        return;
+      }
+
+      // Try generic time/alarm intent
+      final timeIntent = Uri.parse('content://com.android.deskclock/alarms');
+      if (await canLaunchUrl(timeIntent)) {
+        await launchUrl(timeIntent, mode: LaunchMode.externalApplication);
+        return;
+      }
+
+      // Show dialog to help user
+      _showAppNotFoundDialog('Clock/Alarm', null);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not find a clock app. Please install one or open manually.'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  Future<void> _openCalculator() async {
+    try {
+      // First, try to open calculator with action intent (lets user choose)
+      const String calcAction = 'android.intent.action.MAIN';
+      const String calcCategory = 'android.intent.category.LAUNCHER';
+      final Uri calcIntent = Uri.parse('intent://#Intent;action=$calcAction;category=$calcCategory;component=com.android.calculator2/.Calculator;end');
+      
+      try {
+        await launchUrl(calcIntent, mode: LaunchMode.externalApplication);
+        return;
+      } catch (e) {
+        // Continue to other methods if this fails
+      }
+
+      // Try Google Calculator
+      final googleCalcUri = Uri.parse('android-app://com.google.android.calculator');
+      if (await canLaunchUrl(googleCalcUri)) {
+        await launchUrl(googleCalcUri, mode: LaunchMode.externalApplication);
+        return;
+      }
+
+      // Try Samsung Calculator
+      final samsungCalcUri = Uri.parse('android-app://com.sec.android.app.popupcalculator');
+      if (await canLaunchUrl(samsungCalcUri)) {
+        await launchUrl(samsungCalcUri, mode: LaunchMode.externalApplication);
+        return;
+      }
+
+      // Try system calculator
+      final systemCalcUri = Uri.parse('android-app://com.android.calculator2');
+      if (await canLaunchUrl(systemCalcUri)) {
+        await launchUrl(systemCalcUri, mode: LaunchMode.externalApplication);
+        return;
+      }
+
+      // Try generic calculator intent
+      final calcUri = Uri.parse('calculator://');
+      if (await canLaunchUrl(calcUri)) {
+        await launchUrl(calcUri, mode: LaunchMode.externalApplication);
+        return;
+      }
+
+      // Final fallback - show dialog to let user choose
+      _showAppNotFoundDialog('Calculator', 'https://www.google.com/search?q=calculator');
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not find calculator app. Please install one or use the web.'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
   }
 
   void _askForWeather() {
-    _executeQuickAction('What\'s the weather like today?');
+    final provider = Provider.of<VoiceAssistantProvider>(context, listen: false);
+    provider.systemSpeak('Getting weather information for you...');
+    // TODO: Implement actual weather fetching
+    Future.delayed(const Duration(seconds: 1), () {
+      provider.systemSpeak('Weather feature is coming soon! Please check your weather app for current conditions.');
+    });
   }
 
   void _tellJoke() {
-    _executeQuickAction('Tell me a joke');
+    final provider = Provider.of<VoiceAssistantProvider>(context, listen: false);
+    final jokes = [
+      "Why don't scientists trust atoms? Because they make up everything!",
+      "Why did the math book look so sad? Because it was full of problems!",
+      "What do you call a fake noodle? An impasta!",
+      "Why don't eggs tell jokes? They'd crack each other up!",
+      "What do you call a bear with no teeth? A gummy bear!",
+    ];
+    final randomJoke = jokes[(DateTime.now().millisecondsSinceEpoch) % jokes.length];
+    provider.systemSpeak(randomJoke);
   }
 
   void _getQuote() {
-    _executeQuickAction('Give me an inspirational quote');
+    final provider = Provider.of<VoiceAssistantProvider>(context, listen: false);
+    final quotes = [
+      "The only way to do great work is to love what you do. - Steve Jobs",
+      "Innovation distinguishes between a leader and a follower. - Steve Jobs", 
+      "Life is what happens to you while you're busy making other plans. - John Lennon",
+      "The future belongs to those who believe in the beauty of their dreams. - Eleanor Roosevelt",
+      "It is during our darkest moments that we must focus to see the light. - Aristotle",
+    ];
+    final randomQuote = quotes[(DateTime.now().millisecondsSinceEpoch) % quotes.length];
+    provider.systemSpeak(randomQuote);
+  }
+
+  void _getFunFact() {
+    final provider = Provider.of<VoiceAssistantProvider>(context, listen: false);
+    final facts = [
+      "Honey never spoils. Archaeologists have found pots of honey in ancient Egyptian tombs that are over 3,000 years old and still perfectly edible.",
+      "A group of flamingos is called a 'flamboyance'.",
+      "Bananas are berries, but strawberries aren't.",
+      "Octopuses have three hearts and blue blood.",
+      "The shortest war in history lasted only 38-45 minutes between Britain and Zanzibar in 1896.",
+    ];
+    final randomFact = facts[(DateTime.now().millisecondsSinceEpoch) % facts.length];
+    provider.systemSpeak("Here's a fun fact: $randomFact");
   }
 
   void _showAboutDialog() {
@@ -696,6 +883,48 @@ class _ModernHomePageState extends State<ModernHomePage>
           ),
         ],
       ),
+    );
+  }
+
+  void _showAppNotFoundDialog(String appType, String? webFallbackUrl) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('$appType App Not Found'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('No $appType app found on your device.'),
+              const SizedBox(height: 16),
+              Text('What would you like to do?'),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                // Open Play Store to search for the app
+                final playStoreUrl = 'https://play.google.com/store/search?q=${appType.toLowerCase()}';
+                launchUrl(Uri.parse(playStoreUrl), mode: LaunchMode.externalApplication);
+              },
+              child: const Text('Install App'),
+            ),
+            if (webFallbackUrl != null)
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  launchUrl(Uri.parse(webFallbackUrl), mode: LaunchMode.externalApplication);
+                },
+                child: const Text('Use Web Version'),
+              ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+          ],
+        );
+      },
     );
   }
 }
