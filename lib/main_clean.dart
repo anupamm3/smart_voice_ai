@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'providers/app_state_provider.dart';
-import 'providers/voice_assistant_provider.dart';
-import 'modern_home_page.dart';
-import 'screens/notes_screen.dart';
-import 'screens/reminders_screen.dart';
-import 'screens/history_screen.dart';
+import 'providers/app_state_provider_simple.dart';
+import 'providers/voice_assistant_provider_simple.dart';
+import 'home_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,10 +17,10 @@ class SmartVoiceAIApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (_) => AppStateProvider()..loadSettings(),
+          create: (_) => AppStateProvider()..initialize(),
         ),
         ChangeNotifierProvider(
-          create: (_) => VoiceAssistantProvider()..initialize(),
+          create: (_) => VoiceAssistantProvider()..initializeSpeech(),
         ),
       ],
       child: Consumer<AppStateProvider>(
@@ -34,13 +31,10 @@ class SmartVoiceAIApp extends StatelessWidget {
             theme: appState.lightTheme,
             darkTheme: appState.darkTheme,
             themeMode: appState.themeMode,
-            home: const ModernHomePage(),
+            home: const HomePage(),
             routes: {
-              '/home': (context) => const ModernHomePage(),
+              '/home': (context) => const HomePage(),
               '/settings': (context) => const SettingsScreen(),
-              '/notes': (context) => const NotesScreen(),
-              '/reminders': (context) => const RemindersScreen(),
-              '/history': (context) => const HistoryScreen(),
             },
           );
         },
