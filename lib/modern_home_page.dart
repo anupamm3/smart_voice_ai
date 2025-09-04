@@ -20,6 +20,13 @@ class _ModernHomePageState extends State<ModernHomePage>
     with TickerProviderStateMixin {
   late AnimationController _pulseController;
   late AnimationController _waveController;
+  late AnimationController _bubbleController;
+  
+  // Speech bubble state
+  bool _showSpeechBubble = false;
+  String _bubbleText = '';
+  String _bubbleTitle = '';
+  Offset _bubblePosition = Offset.zero;
 
   @override
   void initState() {
@@ -33,12 +40,18 @@ class _ModernHomePageState extends State<ModernHomePage>
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     )..repeat();
+    
+    _bubbleController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
   }
 
   @override
   void dispose() {
     _pulseController.dispose();
     _waveController.dispose();
+    _bubbleController.dispose();
     super.dispose();
   }
 
@@ -47,7 +60,12 @@ class _ModernHomePageState extends State<ModernHomePage>
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: _buildAppBar(),
-      body: _buildBody(),
+      body: Stack(
+        children: [
+          _buildBody(),
+          if (_showSpeechBubble) _buildSpeechBubble(),
+        ],
+      ),
       floatingActionButton: _buildFloatingActionButton(),
       bottomNavigationBar: _buildBottomNavigationBar(),
       drawer: _buildDrawer(),
@@ -825,10 +843,27 @@ class _ModernHomePageState extends State<ModernHomePage>
 
   void _askForWeather() {
     final provider = Provider.of<VoiceAssistantProvider>(context, listen: false);
+    const weatherMessage = 'Weather feature is coming soon! Please check your weather app for current conditions.';
+    
     provider.systemSpeak('Getting weather information for you...');
-    // TODO: Implement actual weather fetching
+    
+    // Show initial bubble
+    final bubblePosition = Offset(
+      20, // Left padding
+      MediaQuery.of(context).size.height * 0.2, // 20% from top
+    );
+    _showSpeechBubbleWithText("🌤️ Weather Update", "Getting weather information for you...", bubblePosition);
+    
+    // Update bubble after delay
     Future.delayed(const Duration(seconds: 1), () {
-      provider.systemSpeak('Weather feature is coming soon! Please check your weather app for current conditions.');
+      provider.systemSpeak(weatherMessage);
+      if (_showSpeechBubble) {
+        setState(() {
+          _bubbleText = weatherMessage;
+        });
+      } else {
+        _showSpeechBubbleWithText("🌤️ Weather Update", weatherMessage, bubblePosition);
+      }
     });
   }
 
@@ -843,6 +878,13 @@ class _ModernHomePageState extends State<ModernHomePage>
     ];
     final randomJoke = jokes[(DateTime.now().millisecondsSinceEpoch) % jokes.length];
     provider.systemSpeak(randomJoke);
+    
+    // Show speech bubble
+    final bubblePosition = Offset(
+      20, // Left padding
+      MediaQuery.of(context).size.height * 0.3, // 30% from top
+    );
+    _showSpeechBubbleWithText("😄 Joke Time!", randomJoke, bubblePosition);
   }
 
   void _getQuote() {
@@ -856,6 +898,13 @@ class _ModernHomePageState extends State<ModernHomePage>
     ];
     final randomQuote = quotes[(DateTime.now().millisecondsSinceEpoch) % quotes.length];
     provider.systemSpeak(randomQuote);
+    
+    // Show speech bubble
+    final bubblePosition = Offset(
+      20, // Left padding
+      MediaQuery.of(context).size.height * 0.25, // 25% from top
+    );
+    _showSpeechBubbleWithText("✨ Inspiration", randomQuote, bubblePosition);
   }
 
   void _getFunFact() {
@@ -869,6 +918,13 @@ class _ModernHomePageState extends State<ModernHomePage>
     ];
     final randomFact = facts[(DateTime.now().millisecondsSinceEpoch) % facts.length];
     provider.systemSpeak("Here's a fun fact: $randomFact");
+    
+    // Show speech bubble
+    final bubblePosition = Offset(
+      20, // Left padding
+      MediaQuery.of(context).size.height * 0.35, // 35% from top
+    );
+    _showSpeechBubbleWithText("🧠 Fun Fact", randomFact, bubblePosition);
   }
 
   void _showAboutDialog() {
@@ -887,6 +943,191 @@ class _ModernHomePageState extends State<ModernHomePage>
         ],
       ),
     );
+  }
+
+  Widget _buildSpeechBubble() {
+    return Positioned(
+      left: _bubblePosition.dx,
+      top: _bubblePosition.dy,
+      child: AnimatedBuilder(
+        animation: _bubbleController,
+        builder: (context, child) {
+          return Transform.scale(
+            scale: _bubbleController.value,
+            child: FadeTransition(
+              opacity: _bubbleController,
+              child: Container(
+                constraints: BoxConstraints(
+                  maxWidth: MediaQuery.of(context).size.width * 0.8,
+                  minWidth: 200,
+                ),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Theme.of(context).colorScheme.primaryContainer,
+                      Theme.of(context).colorScheme.secondaryContainer,
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 15,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Stack(
+                  children: [
+                    // Speech bubble tail
+                    Positioned(
+                      bottom: -8,
+                      left: 30,
+                      child: Container(
+                        width: 16,
+                        height: 16,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primaryContainer,
+                          borderRadius: const BorderRadius.only(
+                            bottomRight: Radius.circular(4),
+                          ),
+                        ),
+                        transform: Matrix4.rotationZ(0.785398), // 45 degrees
+                      ),
+                    ),
+                    // Main bubble content
+                    Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  _bubbleTitle,
+                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(context).colorScheme.primary,
+                                      ),
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: _hideSpeechBubble,
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context).colorScheme.surface.withOpacity(0.7),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.close,
+                                    size: 16,
+                                    color: Theme.of(context).colorScheme.onSurface,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            _bubbleText,
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  height: 1.4,
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                ),
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Consumer<VoiceAssistantProvider>(
+                                builder: (context, provider, child) {
+                                  return Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      if (provider.isSpeaking)
+                                        Container(
+                                          width: 8,
+                                          height: 8,
+                                          margin: const EdgeInsets.only(right: 8),
+                                          decoration: BoxDecoration(
+                                            color: Colors.green,
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                      GestureDetector(
+                                        onTap: () {
+                                          Clipboard.setData(ClipboardData(text: _bubbleText));
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(
+                                              content: Text('Copied to clipboard!'),
+                                              duration: Duration(seconds: 1),
+                                            ),
+                                          );
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.all(6),
+                                          decoration: BoxDecoration(
+                                            color: Theme.of(context).colorScheme.surface.withOpacity(0.7),
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: Icon(
+                                            Icons.copy,
+                                            size: 14,
+                                            color: Theme.of(context).colorScheme.onSurface,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void _showSpeechBubbleWithText(String title, String text, Offset position) {
+    setState(() {
+      _bubbleTitle = title;
+      _bubbleText = text;
+      _bubblePosition = position;
+      _showSpeechBubble = true;
+    });
+    
+    _bubbleController.forward();
+    
+    // Auto-hide after 15 seconds
+    Future.delayed(const Duration(seconds: 15), () {
+      if (_showSpeechBubble) {
+        _hideSpeechBubble();
+      }
+    });
+  }
+
+  void _hideSpeechBubble() {
+    _bubbleController.reverse().then((_) {
+      if (mounted) {
+        setState(() {
+          _showSpeechBubble = false;
+        });
+      }
+    });
   }
 }
 

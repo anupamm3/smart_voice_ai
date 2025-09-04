@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/app_state_provider.dart';
 import 'providers/voice_assistant_provider.dart';
-import 'home_page.dart';
+import 'modern_home_page.dart';
 import 'screens/notes_screen.dart';
 import 'screens/reminders_screen.dart';
 import 'screens/history_screen.dart';
